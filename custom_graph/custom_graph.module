@@ -1,0 +1,130 @@
+<?php
+
+/**
+ * @file
+ * SimpleAds module.
+ */
+
+  module_load_include('module', 'poll', 'poll');
+  module_load_include('module', 'charts', 'charts');
+
+function custom_graph_block_info() {
+  $blocks = array();
+
+  $blocks['custom_graph'] = array(
+    'info' => t('poll graph display'),
+  );
+
+  return $blocks;
+}
+
+/**
+* Implements hook_block_view().
+*/
+function custom_graph_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'custom_graph':
+      $block['subject'] = '';
+      $block['content'] = _custom_graph_display();
+      break;
+  }
+
+  return $block;
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function custom_graph_theme($existing, $type, $theme, $path) {
+  return array(
+    'custom_graph' => array(
+      'template' => 'templates/custom-graph',
+      'variables' => array('choices' => NULL, 'graph' => NULL)
+    ),
+  );
+}
+
+function _custom_graph_display() {
+	$node_id = arg(1);
+	$node = node_load($node_id);
+	$view_mode = 'full';
+	$block = FALSE;
+	uasort($node->choice, 'drupal_sort_weight');
+  // Count the votes and find the maximum.
+	$total_votes = 0;
+	$max_votes = 0;
+	foreach ($node->choice as $choice) {
+	  if (isset($choice['chvotes'])) {
+		$total_votes += $choice['chvotes'];
+		$max_votes = max($max_votes, $choice['chvotes']);
+	  }
+	}
+	if ($node->allowvotes != 1) {
+    $poll_questions = array();
+	$colors = array('#0F0F0F', '#F38936', '#A92F2F');
+
+	  // $poll_question = "<div class = 'choices'><ul>";
+	  foreach ($node->choice as $i => $choice) {
+		if (!empty($choice['chtext'])) {
+		  $chvotes = isset($choice['chvotes']) ? $choice['chvotes'] : NULL;
+		  $temp[$i]['title'] = $choice['chtext'];
+		  $poll_questions[$i] = $choice['chtext'];
+		  // $poll_question .= "<li>".$choice['chtext']."</li>";
+		  $temp[$i]['votes'] = $chvotes;
+		  $temp[$i]['total_votes'] = $total_votes;
+		  $temp[$i]['vote'] = isset($node->vote) && $node->vote == $i;
+		  $temp[$i]['percentage'] = round($chvotes * 100 / max($total_votes, 1));
+		  }
+		}
+		$graph = drupal_render(_test_column_simple($temp, $colors));
+		// $poll_question .= "</ul></div>";
+	}
+	return theme('custom_graph', array('graph' => $graph, 'choices' => $poll_questions, 'colors' => $colors));
+	//return $poll_question.$graph;
+}
+
+function _test_column_simple($temp, $colors) {
+
+	$chart = array(
+		'#type' => 'chart',
+		'#chart_type' => 'column',
+		'#title' => t('poll'),
+		'#legend_position' => 'bottom',
+	);
+	$chart['choices'] = array(
+		'#type' => 'chart_data',
+		'#title' => t('choices'),
+	    '#prefix' => '% ',
+		'#color' => 'green',
+		'#max' => 50,
+	);
+	$i = 0;
+	$j = 1;
+	foreach ( $temp as $key => $value ) {
+		$data[$i]  =  $value['percentage'];
+		$labels[$i] = substr($value['title'], 0, 6);
+		$chart['choices'][$i] = array(
+			'#type' => 'chart_data_item',
+			'#title' => $labels[$i],
+			'#color' => $colors[$i],
+			'#data' => $value['percentage'],
+		);
+		$numeric_labels[] = $j;
+		$i++;
+		$j++;
+	}
+	$chart['yaxis'] = array(
+		'#type' => 'chart_yaxis',
+		'#max' => 100,
+	);
+	$chart['xaxis'] = array(
+		'#type' => 'chart_xaxis',
+		'#labels' => $numeric_labels,
+	);
+	$chart['#width'] = '500px';
+	$example['chart'] = $chart;
+	return $example;
+}

@@ -1,0 +1,11 @@
+name = "custom_graph"
+description = "custom_graph"
+package = "custom_graph"
+core = "7.x"
+
+; Information added by drupal.org packaging script on 2012-05-03
+version = "7.x-1.8"
+core = "7.x"
+project = "custom_graph"
+datestamp = "1336020091"
+
