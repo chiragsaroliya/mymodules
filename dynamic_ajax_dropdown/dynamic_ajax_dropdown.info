@@ -1,0 +1,8 @@
+name = Dynamic Ajax Dropdown
+description = Power review integration for product reviews and rating.
+core = 7.x
+package = Powerreviews
+
+configure = admin/config/powerreviews/settings
+
+;dependencies[] = emergenc_product_url

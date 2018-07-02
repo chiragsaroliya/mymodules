@@ -1,0 +1,101 @@
+<?php
+
+/**
+ * @file
+ * Code for the PFE Products Reviews feature.
+ */
+
+module_load_include('inc', 'dynamic_ajax_dropdown', 'dynamic_ajax_dropdown.forms');
+
+
+/**
+ * Variables.
+ */
+define('DYNAMIC_AJAX_DROPDOWN_VAR_PR_APPLAUNCH_JS_ENDPOINT', 'dynamic_ajax_dropdown_var_pr_applaunch_js_endpoint');
+define('DYNAMIC_AJAX_DROPDOWN_VAR_PR_SNIPPETS_ENGINE_JS', 'dynamic_ajax_dropdown_var_pr_snippets_engine_js');
+define('DYNAMIC_AJAX_DROPDOWN_VAR_PR_MERCHANT_GROUP_ID', 'dynamic_ajax_dropdown_var_pr_merchant_group_id');
+define('DYNAMIC_AJAX_DROPDOWN_VAR_PR_MERCHANT_ID', 'dynamic_ajax_dropdown_var_pr_merchant_id');
+define('DYNAMIC_AJAX_DROPDOWN_VAR_PR_SITE_ID', 'dynamic_ajax_dropdown_var_pr_site_id');
+define('DYNAMIC_AJAX_DROPDOWN_VAR_PR_LOCALE', 'dynamic_ajax_dropdown_var_pr_locale');
+define('DYNAMIC_AJAX_DROPDOWN_API_KEY', 'dynamic_ajax_dropdown_api_key');
+define('DYNAMIC_AJAX_DROPDOWN_JS', 'dynamic_ajax_dropdown_js');
+define('DYNAMIC_AJAX_DROPDOWN_PR_PAGE_ID_DEFAULT_VAL', 'capsules');
+define('DYNAMIC_AJAX_DROPDOWN_PR_LOCALE_DEFAULT_VAL_EN_US', 'en_US');
+
+/**
+ * Implements hook_menu().
+ */
+function dynamic_ajax_dropdown_menu() {
+  $items = array();
+  $items['admin/config/powerreviews'] = array(
+    'title' => 'PowerReviews Integration',
+    'description' => 'PowerReviews admin configuration.',
+    'position' => 'right',
+    'weight' => -31,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/config/powerreviews/settings'] = array(
+    'title' => 'PowerReviews Settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dynamic_ajax_dropdown__forms_powerreviews_settings_form'),
+    'access arguments' => array('administer powerreviews'),
+    'file' => 'dynamic_ajax_dropdown.forms.inc',
+  );
+  $items['write-a-review'] = array(
+    'title' => 'Write a Review',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('dynamic_ajax_dropdown_writeareview_form'),
+    'access arguments' => array('access content'),
+    'file' => 'dynamic_ajax_dropdown.forms.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_init().
+ */
+function dynamic_ajax_dropdown_init() {
+  $powerreiview = get_powerreiview_settings();
+}
+
+/**
+ * Implements hook_permission().
+ */
+function dynamic_ajax_dropdown_permission() {
+  return array(
+    'administer powerreviews' => array(
+      'title' => t('Administer PowerReviews'),
+    ),
+    'administer writereview' => array(
+      'title' => t('Administer writereview'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_page_build().
+ */
+function dynamic_ajax_dropdown_page_build(&$page) {
+
+  // Set variable 'subcategory_pageids_mapping' for /products pages.
+  $path = request_path();
+  $arg = explode('/', $path);
+  if (isset($arg) && $arg[0] == 'products') {
+    $subcategory_pageids = get_subcategory_pageids();
+  }
+}
+
+/**
+ * Block for displaying reviews on product page.
+ */
+function dynamic_ajax_dropdown_preprocess_page(&$variables) {
+  $product_category_name_options = product_category_name_options();
+  foreach ($product_category_name_options as $key => $value) {
+    $product_category[$key] = utility_string_to_class_name($value, '-');
+  }
+  drupal_add_js(array('dynamic_ajax_dropdown' => array('product_category' => $product_category)), array('type' => 'setting'));
+  drupal_add_js(drupal_get_path('module', 'dynamic_ajax_dropdown') . '/js/dynamic_ajax_dropdown.js');
+}
