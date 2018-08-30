@@ -1,0 +1,40 @@
+﻿<?php
+/**
+ * You must implement hook_migrate_api(), setting the API level to 2, for
+ * your migration classes to be recognized by the Migrate module (for the 7.x-2.x branch).
+ */
+function mysite_migrate_migrate_api() {
+	//Disable hooks during migration(Ref. https://www.drupal.org/node/2136601).
+  $disable_hooks = array(
+		'user_presave' => array(
+		  'pfe_utility',// Module for which this hooks will be disabled.
+		),
+	);	
+	$api = array(
+		'api' => 2,
+		'groups' => array(
+		  'mysitemigrate' => array(
+			'title' => t('MYSITE User Migrations'),
+		  ),
+		),
+		'migrations' => array(		
+		  'MYSITEUserMigration' => array(
+        'class_name' => 'MYSITEUserMigration',
+        'group_name' => 'mysitemigrate',
+        'disable_hooks' => $disable_hooks,
+		  ),
+		  'MYSITEUserStep1ProfileMigration' => array(
+        'class_name' => 'MYSITE_Step1_UserProfileMigration',
+        'group_name' => 'mysitemigrate',
+        'disable_hooks' => $disable_hooks,
+		  ),
+		  'MYSITEUserStep2ProfileMigration' => array(
+        'class_name' => 'MYSITE_Step2_UserProfileMigration',
+        'group_name' => 'mysitemigrate',
+        'disable_hooks' => $disable_hooks,
+		  ),	  
+		),
+	);
+	return $api;
+}
+

@@ -1,0 +1,13 @@
+name = "Mysite migrate"
+description = Data-Migration (Import of an csv-file with users with profile fields)
+package = Custom
+
+dependencies[] = migrate
+dependencies[] = migrate_extras
+dependencies[] = profile2
+
+files[] = mysite_migrate.inc
+
+version = "7.x-1.x-dev"
+core = 7.x
+
